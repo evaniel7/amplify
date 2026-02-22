@@ -45,21 +45,21 @@ static AudioBuffer load_wav_to_float(const fs::path& path) {
     uint32_t dataSize = 0;
     size_t dataOff = 0;
 
-    while (off + 8 <= b.size()) {
-        const uint8_t* chunk = b.data() + off;
+    while (off + 8 <= file_in_bytes.size()) {
+        const uint8_t* chunk = file_in_bytes.data() + off;
         char id[5] = {0,0,0,0,0};
         std::memcpy(id, chunk, 4);
         uint32_t chunkSize = read_u32_le(chunk + 4);
         off += 8;
 
-        if (off + chunkSize > b.size()) throw std::runtime_error("Malformed WAV chunk size.");
+        if (off + chunkSize > file_in_bytes.size()) throw std::runtime_error("Malformed WAV chunk size.");
 
         if (std::memcmp(id, "fmt ", 4) == 0) {
             if (chunkSize < 16) throw std::runtime_error("Malformed fmt chunk.");
-            audioFormat   = read_u16_le(b.data() + off + 0);
-            numChannels   = read_u16_le(b.data() + off + 2);
-            sampleRate    = read_u32_le(b.data() + off + 4);
-            bitsPerSample = read_u16_le(b.data() + off + 14);
+            audioFormat   = read_u16_le(file_in_bytes.data() + off + 0);
+            numChannels   = read_u16_le(file_in_bytes.data() + off + 2);
+            sampleRate    = read_u32_le(file_in_bytes.data() + off + 4);
+            bitsPerSample = read_u16_le(file_in_bytes.data() + off + 14);
 
             if (numChannels < 1 || numChannels > 2) {
                 throw std::runtime_error("Only mono/stereo supported in this demo.");
@@ -72,7 +72,7 @@ static AudioBuffer load_wav_to_float(const fs::path& path) {
         }
 
         off += chunkSize;
-        if (chunkSize % 2 == 1 && off < b.size()) off += 1; // word align
+        if (chunkSize % 2 == 1 && off < file_in_bytes.size()) off += 1; // word align
         if (foundFmt && foundData) break;
     }
 
@@ -83,7 +83,7 @@ static AudioBuffer load_wav_to_float(const fs::path& path) {
     out.sampleRate = static_cast<int>(sampleRate);
     out.channels = static_cast<int>(numChannels);
 
-    const uint8_t* p = b.data() + dataOff;
+    const uint8_t* p = file_in_bytes.data() + dataOff;
 
     if (audioFormat == 1 && bitsPerSample == 16) {
         // PCM16
