@@ -1,6 +1,7 @@
 import typer
 from pathlib import Path
 from amplify.config import load_cfg, save_cfg, ensure_cfg
+from amplify.render import export as render_export
 
 app = typer.Typer(add_completion=False)
 
@@ -85,7 +86,8 @@ def export(cfg: str, out: str):
     data = load_cfg(cfg)
     data["export"]["path"] = out
     save_cfg(cfg, data)
-    typer.echo(f"Would export to {out} (render engine not connected).")
+    render_export(data)
+    typer.echo(f"Exported to {out}")
 
 def main():
     app()
