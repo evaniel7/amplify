@@ -1,0 +1,11 @@
+[project]
+name = "amplify"
+version = "0.1.0"
+dependencies = [
+    "librosa",
+    "soundfile",
+    "rich",  
+]
+
+[project.scripts]
+amplify = "amplify.cli:main"

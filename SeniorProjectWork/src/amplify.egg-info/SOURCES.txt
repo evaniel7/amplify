@@ -1,0 +1,9 @@
+pyproject.toml
+src/amplify/cli.py
+src/amplify/sample_loader.py
+src/amplify.egg-info/PKG-INFO
+src/amplify.egg-info/SOURCES.txt
+src/amplify.egg-info/dependency_links.txt
+src/amplify.egg-info/entry_points.txt
+src/amplify.egg-info/requires.txt
+src/amplify.egg-info/top_level.txt
