@@ -1,25 +1,13 @@
-#include <portaudio.h>
-#include "sample_voice.cpp"
+#ifndef INTERPOLATION_CPP_INCLUDED
+#define INTERPOLATION_CPP_INCLUDED
+
 #include <algorithm>
-#include <atomic>
-#include <cstdint>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <optional>
-#include <stdexcept>
-#include <string>
-#include <vector>
-
-namespace fs = std::filesystem;
-
+#include "buffer.cpp"
 
 enum class Interp { Linear, Cubic };
 
 // Catmull-Rom cubic interpolation
 static float interp_cubic(float y0, float y1, float y2, float y3, float t) {
-    // y(t) = 0.5 * (2y1 + (-y0+y2)t + (2y0-5y1+4y2-y3)t^2 + (-y0+3y1-3y2+y3)t^3)
     float t2 = t*t;
     float t3 = t2*t;
     return 0.5f * (2.0f*y1 +
@@ -32,7 +20,6 @@ static float sample_at(const AudioBuffer& b, double framePos, int ch, Interp int
     const size_t N = b.frames();
     if (N == 0) return 0.0f;
 
-    // Clamp to valid range; looping logic handled elsewhere
     framePos = std::max(0.0, std::min(framePos, static_cast<double>(N - 1)));
 
     size_t i1 = static_cast<size_t>(framePos);
@@ -45,7 +32,6 @@ static float sample_at(const AudioBuffer& b, double framePos, int ch, Interp int
         return static_cast<float>((1.0 - frac) * y1 + frac * y2);
     }
 
-    // Cubic: gather neighbors with edge clamping
     size_t i0 = (i1 == 0) ? 0 : i1 - 1;
     size_t i2 = std::min(i1 + 1, N - 1);
     size_t i3 = std::min(i1 + 2, N - 1);
@@ -57,3 +43,5 @@ static float sample_at(const AudioBuffer& b, double framePos, int ch, Interp int
 
     return interp_cubic(y0, y1, y2, y3, static_cast<float>(frac));
 }
+
+#endif // INTERPOLATION_CPP_INCLUDED

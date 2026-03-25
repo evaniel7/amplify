@@ -1,4 +1,8 @@
+#ifndef PORT_AUDIO_CPP_INCLUDED
+#define PORT_AUDIO_CPP_INCLUDED
+
 #include <portaudio.h>
+#include "sample_voice.cpp"
 
 #include <algorithm>
 #include <atomic>
@@ -13,7 +17,6 @@
 #include <vector>
 
 namespace fs = std::filesystem;
-
 
 struct Engine {
     AudioBuffer buffer;
@@ -34,10 +37,10 @@ static int pa_callback(const void*, void* outputBuffer,
     auto* e = static_cast<Engine*>(userData);
     float* out = static_cast<float*>(outputBuffer);
 
-    // Clear first (safe)
     std::fill(out, out + framesPerBuffer * e->outChannels, 0.0f);
 
     e->voice.render(out, framesPerBuffer, e->outChannels);
     return e->running.load() ? paContinue : paComplete;
 }
 
+#endif // PORT_AUDIO_CPP_INCLUDED

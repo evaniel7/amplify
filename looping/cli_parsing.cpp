@@ -1,4 +1,5 @@
-#include <portaudio.h>
+
+#include "port_audio.cpp"
 #include "interpolation.cpp"
 #include <algorithm>
 #include <atomic>
