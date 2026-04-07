@@ -1,0 +1,35 @@
+version: 1
+project:
+  name: test_project
+  sample_rate: 44100
+  channels: 1
+  bpm: 120
+  time_signature: 4/4
+assets:
+- id: kick
+  path: kick.wav
+- id: snare
+  path: snare.wav
+timeline:
+- id: kick_track
+  asset: kick
+  start: 0.0
+  gain_db: -3.0
+  ops:
+  - type: loop
+    count: 4
+- id: snare_track
+  asset: snare
+  start: 0.5
+  gain_db: 0.0
+  ops:
+  - type: scale
+    factor: 0.2
+    preserve_pitch: true
+  - type: loop
+    count: 4
+mix:
+  normalize: true
+export:
+  path: out.wav
+  format: wav

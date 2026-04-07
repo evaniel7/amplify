@@ -3,6 +3,7 @@ pyproject.toml
 src/amplify/__init__.py
 src/amplify/cli.py
 src/amplify/config.py
+src/amplify/render.py
 src/amplify/sample_loader.py
 src/amplify.egg-info/PKG-INFO
 src/amplify.egg-info/SOURCES.txt

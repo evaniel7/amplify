@@ -5,6 +5,7 @@ Summary: CLI audio manipulation tool
 Requires-Python: >=3.10
 Requires-Dist: typer>=0.12
 Requires-Dist: pyyaml>=6.0
-Requires-Dist: librosa
-Requires-Dist: soundfile
-Requires-Dist: rich
+Requires-Dist: librosa>=0.10.1
+Requires-Dist: soundfile>=0.12.1
+Requires-Dist: rich>=13.0.0
+Requires-Dist: numpy>=1.26

@@ -1,26 +1,61 @@
-import librosa
-import os
+from pathlib import Path
 
-def load_sample(file_path):
-    """
-    Core logic to load audio. 
-    Raises FileNotFoundError, ValueError, or RuntimeError.
-    """
-    # 1. Existence Check
-    if not os.path.exists(file_path):
+import librosa
+import numpy as np
+
+
+SUPPORTED_FORMATS = {".wav", ".mp3", ".flac", ".ogg", ".m4a"}
+
+
+def validate_audio_path(file_path: str | Path) -> Path:
+    path = Path(file_path).expanduser().resolve()
+
+    if not path.exists():
         raise FileNotFoundError(f"The file '{file_path}' does not exist.")
 
-    # 2. Format Guard Clause
-    supported = ('.wav', '.mp3')
-    if not file_path.lower().endswith(supported):
-        raise ValueError(f"Unsupported format. Amplify only accepts {supported}.")
+    if not path.is_file():
+        raise ValueError(f"'{file_path}' is not a file.")
+
+    if path.suffix.lower() not in SUPPORTED_FORMATS:
+        supported = ", ".join(sorted(SUPPORTED_FORMATS))
+        raise ValueError(f"Unsupported format '{path.suffix}'. Amplify accepts: {supported}.")
+
+    return path
+
+
+def load_sample(file_path: str | Path) -> tuple[np.ndarray, int]:
+    """
+    Load one audio file as mono audio at its original sample rate.
+
+    Returns:
+        (signal, sr)
+    Raises:
+        FileNotFoundError, ValueError, RuntimeError
+    """
+    path = validate_audio_path(file_path)
 
     try:
-        # 3. Actual Loading
-        # sr=None preserves original sample rate
-        signal, sr = librosa.load(file_path, sr=None)
-        return signal, sr
-        
+        signal, sr = librosa.load(str(path), sr=None, mono=True)
     except Exception as e:
-        # Catch corruption or decoding failures
-        raise RuntimeError(f"Audio decoding failed: {e}")
+        raise RuntimeError(f"Audio decoding failed: {e}") from e
+
+    if signal is None or len(signal) == 0:
+        raise RuntimeError(f"Audio file '{path}' loaded as empty.")
+
+    return signal.astype(np.float32, copy=False), int(sr)
+
+
+def get_sample_info(file_path: str | Path) -> dict:
+    """
+    Convenience helper for CLI display or debugging.
+    """
+    signal, sr = load_sample(file_path)
+    duration = len(signal) / sr
+
+    return {
+        "path": str(Path(file_path).expanduser().resolve()),
+        "sample_rate": sr,
+        "samples": len(signal),
+        "duration_seconds": duration,
+        "channels": 1,
+    }
