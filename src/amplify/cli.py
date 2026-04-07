@@ -1,9 +1,14 @@
 import typer
 from pathlib import Path
 from amplify.config import load_cfg, save_cfg, ensure_cfg
+import sys
+import argparse
+from rich.console import Console
+from amplify.sample_loader import load_sample
 from amplify.render import export as render_export
 
 app = typer.Typer(add_completion=False)
+console = Console()
 
 @app.command()
 def init(cfg: str):
@@ -12,21 +17,27 @@ def init(cfg: str):
     typer.echo(f"Initialized {cfg}")
 
 @app.command()
-def load(cfg: str, files: list[str]):
-    """Add audio files to config."""
-    data = load_cfg(cfg)
-    for f in files:
-        asset_id = Path(f).stem
-        data["assets"].append({"id": asset_id, "path": f})
-        data["timeline"].append({
-            "id": f"{asset_id}_1",
-            "asset": asset_id,
-            "start": 0.0,
-            "gain_db": 0.0,
-            "ops": []
-        })
-    save_cfg(cfg, data)
-    typer.echo(f"Loaded {len(files)} file(s).")
+def load(args):
+    """UI Wrapper for the loading process."""
+    try:
+        # Start the visual spinner
+        with console.status("[bold cyan]Processing audio...", spinner="dots"):
+            signal, sr = load_sample(args)
+        
+        # Success message
+        duration = len(signal) / sr
+        console.print(f"[bold green]✓[/bold green] Successfully loaded: [yellow]{args}[/yellow]")
+        console.print(f"[dim]Rate: {sr}Hz | Duration: {duration:.2f}s[/dim]")
+
+    except (ValueError, FileNotFoundError) as e:
+        # Displays your custom "Unsupported format" or "File not found" messages
+        console.print(f"[bold red]Input Error:[/bold red] {e}")
+        sys.exit(1)
+        
+    except RuntimeError as e:
+        # Displays corruption or system errors
+        console.print(f"[bold red]System Error:[/bold red] {e}")
+        sys.exit(1)
 
 @app.command()
 def scale(
@@ -91,6 +102,17 @@ def export(cfg: str, out: str):
 
 def main():
     app()
+    parser = argparse.ArgumentParser(prog="amplify", description="Amplify Sample Loader")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # Setup 'amplify load [filename]'
+    load_parser = subparsers.add_parser("load", help="Load a WAV or MP3 file")
+    load_parser.add_argument("filename", help="Path to the audio file")
+    
+    args = parser.parse_args()
+
+    if args.command == "load":
+        handle_load(args)
 
 if __name__ == "__main__":
     main()
