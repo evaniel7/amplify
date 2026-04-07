@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amplify"
+version = "0.1.0"
+description = "CLI audio manipulation tool"
+requires-python = ">=3.10"
+dependencies = [
+    "typer>=0.12",
+    "pyyaml>=6.0",
+    "pydub>=0.25.1",
+    "librosa>=0.10.1",
+    "soundfile>=0.12.1"
+]
+
+[project.scripts]
+amplify = "amplify.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
